@@ -1,7 +1,3 @@
-const scalePopup = document.querySelector('.popup_type_image');
-const scalePopupImg = document.querySelector('.popup__image');
-const scalePopupCaption = document.querySelector('.popup__caption');
-
 function openPopup(elem) {
     elem.classList.add('popup_is-opened');
     document.addEventListener('keydown', handlePopupEsc);
@@ -24,7 +20,6 @@ function handlePopupOverlay(event) {
         closePopup(event.target);
     }
 }
-
 
 export {openPopup, closePopup, handlePopupEsc, handlePopupOverlay};
 
