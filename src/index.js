@@ -1,7 +1,8 @@
-import initialCards from "./pages/cards";
-import { createCard, deleteCard, likeCard } from './pages/card';
+import { getUserData, getInitialCards, patchUserData, postNewCard, patchNewAvatar } from './pages/api'
 import { openPopup, closePopup,  handlePopupOverlay } from './pages/modal';
 import './pages/index.css';
+import { createCard, likeCard, deleteCard } from "./pages/card";
+import { selectors, clearValidation, enableValidation} from './pages/validation';
 
 const placesList = document.querySelector('.places__list');
 const allPopups = document.querySelectorAll('.popup');
@@ -19,8 +20,85 @@ const formPlaceLink = document.querySelector('.popup__input_type_url');
 const scalePopup = document.querySelector('.popup_type_image');
 const scalePopupImg = document.querySelector('.popup__image');
 const scalePopupCaption = document.querySelector('.popup__caption');
+const profileAvatarPopup = document.querySelector('.popup_avatar_edit');
+const profileAvatarPopupBtn = document.querySelector('.profile__avatar-edit-button');
+const profileAvatar = document.querySelector('.profile__image');
+const profileAvatarForm = document.forms['edit-avatar'];
+const profileInput = profileAvatarForm.elements.link;
 const editForm = document.forms['edit-profile'];
 const newCardForm = document.forms['new-place'];
+let Id;
+
+
+Promise.all([getUserData(), getInitialCards()])
+    .then(([userInfo, cards]) => {
+        pageUserName.textContent = userInfo.name;
+        pageUserJob.textContent = userInfo.about;
+        Id = userInfo._id;
+        profileAvatar.style.backgroundImage = `url(${userInfo.avatar})`
+        cards.forEach((card) => {
+            const cardContent = createCard(card, Id, deleteCard, likeCard, scaleImg);
+            placesList.append(cardContent);
+        });
+    })
+    .catch((err) => {
+        console.log(err);
+    }); 
+
+function handleUserInfoFormSubmit(event) {
+    event.preventDefault();
+    const editFormBtn = editForm.querySelector('.popup__button');
+    editFormBtn.textContent = 'Сохранение...'
+    patchUserData(formUserName.value, formUserJob.value)
+        .then((data => {
+            pageUserName.textContent = data.name;
+            pageUserJob.textContent = data.about;
+            closePopup(profileEditPopup);
+        }))
+        .catch((err) => {
+            console.log(err);
+        })
+        .finally(() => {
+            editFormBtn.textContent = 'Сохранено'
+        })
+        
+}
+
+function handleUserAvatarSubmit(event) {
+    event.preventDefault();
+    const profileAvatarFormBtn = profileAvatarForm.querySelector('.popup__button');
+    profileAvatarFormBtn.textContent = 'Сохранение...'
+    patchNewAvatar(profileInput.value)
+        .then((data => {
+            profileAvatar.style.backgroundImage = `url(${data.avatar})`;
+            closePopup(profileAvatarPopup);
+        }))
+        .catch((err) => {
+            console.log(err);
+        })
+        .finally(() => {
+            profileAvatarFormBtn.textContent = 'Сохранено'
+        })
+
+}
+
+function handleNewCardFormSubmit(event) {
+    event.preventDefault();
+    const newCardFormBtn = newCardForm.querySelector('.popup__button');
+    newCardFormBtn.textContent = 'Сохранение...'
+    postNewCard(formPlaceName.value, formPlaceLink.value)
+        .then((card => {
+            placesList.prepend(createCard(card, Id, deleteCard, likeCard, scaleImg));
+            closePopup(cardAddPopup);
+            newCardForm.reset();
+        }))
+        .catch((err) => {
+            console.log(err); 
+        })
+        .finally(() => {
+            newCardFormBtn.textContent = 'Сохранить'
+        })
+}
 
 function scaleImg(event) {
     scalePopupImg.src = event.target.src;
@@ -29,33 +107,21 @@ function scaleImg(event) {
     openPopup(scalePopup);
 }
 
-initialCards.forEach((elem) => {
-    const cardContent = createCard(elem, deleteCard, likeCard, scaleImg);
-    placesList.append(cardContent);
+profileAvatarPopupBtn.addEventListener('click', function () {
+    openPopup(profileAvatarPopup);
+    clearValidation(profileAvatarForm, selectors);
 });
 
 profileEditBtn.addEventListener('click', function () {
+    clearValidation(profileEditPopup, selectors);
     formUserName.value = pageUserName.textContent;
     formUserJob.value = pageUserJob.textContent;
     openPopup(profileEditPopup);
 });
 
-function handleUserInfoFormSubmit(event) {
-    event.preventDefault();
-    pageUserName.textContent = formUserName.value;
-    pageUserJob.textContent = formUserJob.value;
-    closePopup(profileEditPopup);
-}
-
-function handleNewCardFormSubmit(event) {
-    event.preventDefault();
-    placesList.prepend(createCard({ name: formPlaceName.value, link: formPlaceLink.value }, deleteCard, likeCard, scaleImg));
-    closePopup(cardAddPopup);
-    newCardForm.reset(); 
-}
-
 profileAddBtn.addEventListener('click', function () {
     openPopup(cardAddPopup);
+    clearValidation(cardAddPopup, selectors);
 });
 
 allPopups.forEach((elem) => {
@@ -72,3 +138,6 @@ editForm.addEventListener('submit', handleUserInfoFormSubmit);
 
 newCardForm.addEventListener('submit', handleNewCardFormSubmit);
 
+profileAvatarForm.addEventListener('submit', handleUserAvatarSubmit);
+
+enableValidation(selectors);
