@@ -2,7 +2,7 @@ import { getUserData, getInitialCards, patchUserData, postNewCard, patchNewAvata
 import { openPopup, closePopup,  handlePopupOverlay } from './pages/modal';
 import './pages/index.css';
 import { createCard, likeCard, deleteCard } from "./pages/card";
-import { selectors, clearValidation, enableValidation} from './pages/validation';
+import { clearValidation, enableValidation} from './pages/validation';
 
 const placesList = document.querySelector('.places__list');
 const allPopups = document.querySelectorAll('.popup');
@@ -27,17 +27,26 @@ const profileAvatarForm = document.forms['edit-avatar'];
 const profileInput = profileAvatarForm.elements.link;
 const editForm = document.forms['edit-profile'];
 const newCardForm = document.forms['new-place'];
-let Id;
+let myId;
+
+const selectors = {
+    formSelector: '.popup__form',
+    inputSelector: '.popup__input',
+    submitButtonSelector: '.popup__button',
+    inactiveButtonClass: 'popup__button_disabled',
+    inputErrorClass: 'popup__input_type_error',
+    errorClass: 'popup__error_visible'
+};
 
 
 Promise.all([getUserData(), getInitialCards()])
     .then(([userInfo, cards]) => {
         pageUserName.textContent = userInfo.name;
         pageUserJob.textContent = userInfo.about;
-        Id = userInfo._id;
+        myId = userInfo._id;
         profileAvatar.style.backgroundImage = `url(${userInfo.avatar})`
         cards.forEach((card) => {
-            const cardContent = createCard(card, Id, deleteCard, likeCard, scaleImg);
+            const cardContent = createCard(card, myId, deleteCard, likeCard, scaleImg);
             placesList.append(cardContent);
         });
     })
@@ -59,7 +68,7 @@ function handleUserInfoFormSubmit(event) {
             console.log(err);
         })
         .finally(() => {
-            editFormBtn.textContent = 'Сохранено'
+            editFormBtn.textContent = 'Сохранить'
         })
         
 }
@@ -77,7 +86,7 @@ function handleUserAvatarSubmit(event) {
             console.log(err);
         })
         .finally(() => {
-            profileAvatarFormBtn.textContent = 'Сохранено'
+            profileAvatarFormBtn.textContent = 'Сохранить'
         })
 
 }
@@ -88,7 +97,7 @@ function handleNewCardFormSubmit(event) {
     newCardFormBtn.textContent = 'Сохранение...'
     postNewCard(formPlaceName.value, formPlaceLink.value)
         .then((card => {
-            placesList.prepend(createCard(card, Id, deleteCard, likeCard, scaleImg));
+            placesList.prepend(createCard(card, myId, deleteCard, likeCard, scaleImg));
             closePopup(cardAddPopup);
             newCardForm.reset();
         }))

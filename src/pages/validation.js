@@ -1,11 +1,3 @@
-const selectors = {
-    formSelector: '.popup__form',
-    inputSelector: '.popup__input',
-    submitButtonSelector: '.popup__button',
-    inactiveButtonClass: 'popup__button_disabled',
-    inputErrorClass: 'popup__input_type_error',
-    errorClass: 'popup__error_visible'
-};
 
 const showInputError = (formElement, inputElement, selectors) => {
     const errorElement = formElement.querySelector(`.${inputElement.id}-error`);
@@ -83,4 +75,4 @@ function clearValidation(formElement, selectors) {
     buttonElement.classList.add(selectors.inactiveButtonClass);
 };
 
-export { selectors, clearValidation, enableValidation}
+export { clearValidation, enableValidation}
